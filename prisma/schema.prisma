@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  plan      String   @default("free") // free | pro | business
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects      Project[]
+  renders       Render[]
+  assets        Asset[]
+  subscriptions Subscription[]
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String   @default("Untitled Project")
+  data      Json     // Full project JSON (elements, camera, audio, etc.)
+  thumbnail String?  // URL to thumbnail image
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  renders Render[]
+
+  @@index([userId])
+}
+
+model Render {
+  id         String   @id @default(cuid())
+  projectId  String
+  userId     String
+  status     String   @default("pending") // pending | rendering | complete | failed
+  format     String   @default("mp4")
+  resolution String   @default("1080p")
+  outputUrl  String?
+  fileSize   String?
+  error      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([projectId])
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // image | audio | video
+  url       String
+  filename  String
+  size      Int      @default(0)
+  mimeType  String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  userId               String
+  stripeCustomerId     String?  @unique
+  stripeSubscriptionId String?  @unique
+  stripePriceId        String?
+  stripeCurrentPeriodEnd DateTime?
+  plan                 String   @default("free")
+  status               String   @default("active")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
