@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { useCurrentFrame, interpolate, Img } from "remotion";
 import type { WhiteboardElement, ImageData } from "@/store/types";
+import { computeAnimation } from "@/lib/animations";
 
 interface Props {
   element: WhiteboardElement;
@@ -64,29 +65,17 @@ export const ImageElement: React.FC<Props> = React.memo(({ element }) => {
   const localFrame = frame - element.startFrame;
   if (localFrame < 0) return null;
 
-  const drawProgress =
-    element.animationType === "draw"
-      ? interpolate(localFrame, [0, element.drawSpeed], [0, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        })
-      : 1;
-
-  const opacity =
-    element.animationType === "fade-in"
-      ? interpolate(localFrame, [0, element.drawSpeed], [0, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        })
-      : element.opacity;
-
   const w = element.size.width;
   const h = element.size.height;
   const rowH = h / rows;
-  // Brush stroke thick enough to fully cover each row — with round caps it bleeds a bit extra which is perfect
   const brushSize = rowH * 1.15;
 
+  // Draw animation (special handling with SVG mask)
   if (element.animationType === "draw") {
+    const drawProgress = interpolate(localFrame, [0, element.drawSpeed], [0, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    });
     const offset = totalLen * (1 - drawProgress);
 
     return (
@@ -109,7 +98,6 @@ export const ImageElement: React.FC<Props> = React.memo(({ element }) => {
           style={{ position: "absolute", top: 0, left: 0 }}
         >
           <defs>
-            {/* The brush-stroke mask: white = visible, black = hidden */}
             <mask id={maskId}>
               <rect x={-20} y={-20} width={w + 40} height={h + 40} fill="black" />
               <path
@@ -124,8 +112,6 @@ export const ImageElement: React.FC<Props> = React.memo(({ element }) => {
               />
             </mask>
           </defs>
-
-          {/* Render the image inside SVG, masked by the brush stroke */}
           <image
             href={data.src}
             x={0}
@@ -142,7 +128,9 @@ export const ImageElement: React.FC<Props> = React.memo(({ element }) => {
     );
   }
 
-  // Non-draw animations
+  // All other animations use the shared animation system
+  const anim = computeAnimation(element.animationType, localFrame, element.drawSpeed, element.opacity);
+
   return (
     <div
       style={{
@@ -151,8 +139,10 @@ export const ImageElement: React.FC<Props> = React.memo(({ element }) => {
         top: element.position.y,
         width: w,
         height: h,
-        transform: `rotate(${element.rotation}deg)`,
-        opacity,
+        transform: `rotate(${element.rotation}deg) ${anim.transform !== "none" ? anim.transform : ""}`.trim(),
+        transformOrigin: "center center",
+        opacity: anim.opacity,
+        clipPath: anim.clipPath,
         overflow: "hidden",
       }}
     >

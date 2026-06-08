@@ -1,10 +1,13 @@
 import React from "react";
 import { useCurrentFrame, interpolate } from "remotion";
 import { evolvePath } from "@remotion/paths";
-import type { WhiteboardElement, ShapeData } from "@/store/types";
+import type { WhiteboardElement, ShapeData, VideoStyle } from "@/store/types";
+import { getStyleDefinition } from "@/lib/video-styles";
+import { computeAnimation } from "@/lib/animations";
 
 interface Props {
   element: WhiteboardElement;
+  videoStyle?: string;
 }
 
 function generateShapePath(
@@ -65,28 +68,27 @@ function generateShapePath(
   }
 }
 
-export const ShapeElement: React.FC<Props> = React.memo(({ element }) => {
+export const ShapeElement: React.FC<Props> = React.memo(({ element, videoStyle }) => {
   const frame = useCurrentFrame();
   const data = element.data as ShapeData;
+  const styleDef = getStyleDefinition((videoStyle as VideoStyle) || "classic-whiteboard");
 
   const localFrame = frame - element.startFrame;
   if (localFrame < 0) return null;
 
-  const drawProgress =
-    element.animationType === "draw"
-      ? interpolate(localFrame, [0, element.drawSpeed], [0, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        })
-      : 1;
+  const isDrawAnimation = element.animationType === "draw";
 
-  const opacity =
-    element.animationType === "fade-in"
-      ? interpolate(localFrame, [0, element.drawSpeed], [0, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        })
-      : element.opacity;
+  const drawProgress = isDrawAnimation
+    ? interpolate(localFrame, [0, element.drawSpeed], [0, 1], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      })
+    : 1;
+
+  // Compute animation for non-draw types
+  const anim = !isDrawAnimation
+    ? computeAnimation(element.animationType, localFrame, element.drawSpeed, element.opacity)
+    : { opacity: element.opacity, transform: "none", clipPath: undefined };
 
   const pathD =
     data.generatedPath ||
@@ -97,8 +99,10 @@ export const ShapeElement: React.FC<Props> = React.memo(({ element }) => {
       data.cornerRadius
     );
 
-  const evolved =
-    element.animationType === "draw" ? evolvePath(drawProgress, pathD) : null;
+  const evolved = isDrawAnimation ? evolvePath(drawProgress, pathD) : null;
+
+  // Style-specific SVG filter
+  const svgFilter = styleDef.svgFilterId ? `url(#${styleDef.svgFilterId})` : undefined;
 
   return (
     <div
@@ -108,8 +112,10 @@ export const ShapeElement: React.FC<Props> = React.memo(({ element }) => {
         top: element.position.y,
         width: element.size.width,
         height: element.size.height,
-        transform: `rotate(${element.rotation}deg)`,
-        opacity,
+        transform: `rotate(${element.rotation}deg) ${anim.transform !== "none" ? anim.transform : ""}`.trim(),
+        transformOrigin: "center center",
+        opacity: anim.opacity,
+        clipPath: anim.clipPath,
       }}
     >
       <svg
@@ -118,17 +124,19 @@ export const ShapeElement: React.FC<Props> = React.memo(({ element }) => {
         height="100%"
         style={{ overflow: "visible" }}
       >
-        <path
-          d={pathD}
-          stroke={data.strokeColor}
-          strokeWidth={data.strokeWidth}
-          fill={drawProgress >= 1 ? data.fillColor : "none"}
-          fillOpacity={drawProgress >= 1 ? 1 : 0}
-          strokeDasharray={evolved?.strokeDasharray}
-          strokeDashoffset={evolved?.strokeDashoffset}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        <g filter={svgFilter}>
+          <path
+            d={pathD}
+            stroke={data.strokeColor}
+            strokeWidth={data.strokeWidth}
+            fill={drawProgress >= 1 ? data.fillColor : "none"}
+            fillOpacity={drawProgress >= 1 ? 1 : 0}
+            strokeDasharray={evolved?.strokeDasharray}
+            strokeDashoffset={evolved?.strokeDashoffset}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
       </svg>
     </div>
   );

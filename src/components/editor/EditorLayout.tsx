@@ -40,7 +40,7 @@ export const EditorLayout: React.FC = () => {
   }, [project]);
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-[var(--background)]">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-zinc-900">
       <TopToolbar />
       <div className="flex flex-1 overflow-hidden">
         {leftOpen && <LeftSidebar />}

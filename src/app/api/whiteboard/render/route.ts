@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import fs from "fs";
 import os from "os";
+import { apiError, validateRenderInput } from "@/lib/api-utils";
 
 // Dynamic imports to avoid loading heavy modules on every request
 async function getRemotion() {
@@ -25,7 +26,6 @@ async function ensureBundle(): Promise<string> {
     const { bundle } = await getRemotion();
     const entryPoint = path.join(process.cwd(), "src/remotion/index.ts");
 
-    console.log("[Render] Bundling Remotion entry point...");
     const bundled = await bundle({
       entryPoint,
       webpackOverride: (config) => {
@@ -40,7 +40,6 @@ async function ensureBundle(): Promise<string> {
         return config;
       },
     });
-    console.log("[Render] Bundle complete:", bundled);
     bundleCachePath = bundled;
     bundlePromise = null;
     return bundled;
@@ -60,11 +59,9 @@ export async function POST(request: NextRequest) {
       quality,
     } = body;
 
-    if (!project || !project.elements) {
-      return NextResponse.json(
-        { error: "Invalid project data" },
-        { status: 400 }
-      );
+    const validationError = validateRenderInput(body);
+    if (validationError) {
+      return apiError(validationError);
     }
 
     // Calculate total duration from project data

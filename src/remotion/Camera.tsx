@@ -21,7 +21,7 @@ export const Camera: React.FC<Props> = ({ keyframes, children }) => {
         position: "absolute",
         top: 0,
         left: 0,
-        transform: `scale(${scale}) translate(${-x}px, ${-y}px)`,
+        transform: `translate(${-x}px, ${-y}px) scale(${scale})`,
         transformOrigin: `${width / 2}px ${height / 2}px`,
       }}
     >

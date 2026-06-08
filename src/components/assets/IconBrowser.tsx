@@ -45,7 +45,7 @@ export const IconBrowser: React.FC = () => {
 
   // Fetch icon index on mount
   useEffect(() => {
-    fetch("/api/icons")
+    fetch("/api/whiteboard/icons")
       .then((r) => r.json())
       .then((data) => {
         setAllIcons(data.icons);
@@ -96,7 +96,7 @@ export const IconBrowser: React.FC = () => {
     async (iconName: string) => {
       setAddingIcon(iconName);
       try {
-        const res = await fetch(`/api/icons?name=${encodeURIComponent(iconName)}`);
+        const res = await fetch(`/api/whiteboard/icons?name=${encodeURIComponent(iconName)}`);
         const data = await res.json();
         if (!data.svg) return;
 

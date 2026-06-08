@@ -11,6 +11,8 @@ const defaultProps: Project = {
   height: 1080,
   fps: 30,
   backgroundColor: "#FFFFFF",
+  videoStyle: "classic-whiteboard",
+  aspectRatio: "16:9",
   elements: [],
   cameraKeyframes: [],
   audioTracks: [],

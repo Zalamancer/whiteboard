@@ -49,7 +49,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ open, onClose }) => 
     setStatusText("Preparing export...");
 
     try {
-      const response = await fetch("/api/render", {
+      const response = await fetch("/api/whiteboard/render", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -156,7 +156,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ open, onClose }) => 
   const handleDownload = useCallback(() => {
     if (!outputFile) return;
     const link = document.createElement("a");
-    link.href = `/api/render/download?file=${encodeURIComponent(outputFile)}`;
+    link.href = `/api/whiteboard/render/download?file=${encodeURIComponent(outputFile)}`;
     link.download = `whiteboard-export.${format}`;
     document.body.appendChild(link);
     link.click();

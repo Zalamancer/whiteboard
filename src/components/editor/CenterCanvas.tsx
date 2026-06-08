@@ -1,10 +1,32 @@
 "use client";
 
-import React, { useRef, useCallback, useEffect } from "react";
-import { Player, type PlayerRef } from "@remotion/player";
-import { WhiteboardComposition } from "@/remotion/WhiteboardComposition";
+import React, { useRef, useCallback, useEffect, useMemo } from "react";
+import dynamic from "next/dynamic";
+import type { PlayerRef } from "@remotion/player";
 import { useProjectStore } from "@/store/useProjectStore";
 import { useEditorStore } from "@/store/useEditorStore";
+
+// Dynamically import the Player + all Remotion dependencies together.
+// This keeps the entire Remotion bundle out of the initial page chunk,
+// preventing the browser from freezing on navigation.
+const LazyPlayerWrapper = dynamic(
+  () =>
+    import("./PlayerWrapper").then((mod) => ({ default: mod.PlayerWrapper })),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="flex animate-pulse items-center justify-center rounded-lg bg-white/10"
+        style={{ width: 800, height: 450 }}
+      >
+        <span className="text-sm text-white/30">Loading player…</span>
+      </div>
+    ),
+  }
+);
+
+const MAX_PREVIEW_WIDTH = 800;
+const MAX_PREVIEW_HEIGHT = 520;
 
 export const CenterCanvas: React.FC = () => {
   const project = useProjectStore((s) => s.project);
@@ -76,38 +98,37 @@ export const CenterCanvas: React.FC = () => {
   const currentTime = (currentFrame / fps).toFixed(1);
   const totalTime = (totalDuration / fps).toFixed(1);
 
+  // Compute preview dimensions dynamically based on aspect ratio
+  const { previewWidth, previewHeight } = useMemo(() => {
+    const aspectRatio = project.width / project.height;
+    let w = MAX_PREVIEW_WIDTH;
+    let h = w / aspectRatio;
+    if (h > MAX_PREVIEW_HEIGHT) {
+      h = MAX_PREVIEW_HEIGHT;
+      w = h * aspectRatio;
+    }
+    return { previewWidth: Math.round(w), previewHeight: Math.round(h) };
+  }, [project.width, project.height]);
+
   return (
-    <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden bg-[var(--background)]">
+    <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden bg-zinc-900">
       {/* Canvas area */}
       <div
         className="relative overflow-hidden rounded-lg shadow-2xl"
         style={{ maxWidth: "100%", maxHeight: "calc(100% - 48px)" }}
       >
         <div onClick={handleCanvasClick} className="relative">
-          <Player
+          <LazyPlayerWrapper
             ref={playerRef}
-            component={WhiteboardComposition}
-            inputProps={project}
+            project={project}
             durationInFrames={totalDuration}
-            compositionWidth={project.width}
-            compositionHeight={project.height}
-            fps={fps}
-            style={{
-              width: 800,
-              height: 450,
-            }}
-            controls
-            autoPlay={false}
-            loop
-            clickToPlay
-            acknowledgeRemotionLicense
           />
           {/* Selection overlay indicators */}
           {selectedIds.map((id) => {
             const el = project.elements.find((e) => e.id === id);
             if (!el) return null;
-            const scaleX = 800 / project.width;
-            const scaleY = 450 / project.height;
+            const scaleX = previewWidth / project.width;
+            const scaleY = previewHeight / project.height;
             return (
               <div
                 key={id}
@@ -120,7 +141,7 @@ export const CenterCanvas: React.FC = () => {
                   border: "2px solid var(--primary)",
                   borderRadius: 2,
                   pointerEvents: "none",
-                  boxShadow: "0 0 0 1px rgba(108, 99, 255, 0.3)",
+                  boxShadow: "0 0 0 1px rgba(34, 197, 94, 0.3)",
                 }}
               />
             );
@@ -140,7 +161,7 @@ export const CenterCanvas: React.FC = () => {
               player.play();
             }
           }}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"
+          className="flex h-7 w-7 items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600"
         >
           {isPlaying ? (
             <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">

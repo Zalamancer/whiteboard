@@ -5,9 +5,9 @@ import { PropertiesPanel } from "../properties/PropertiesPanel";
 
 export const RightSidebar: React.FC = () => {
   return (
-    <div className="flex w-[280px] shrink-0 flex-col border-l border-[var(--border)] bg-[var(--surface)]">
-      <div className="border-b border-[var(--border)] px-3 py-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+    <div className="flex w-[280px] shrink-0 flex-col border-l border-zinc-700/50 bg-zinc-800">
+      <div className="border-b border-zinc-700/50 px-3 py-1.5">
+        <h3 className="text-xs font-medium text-zinc-200">
           Properties
         </h3>
       </div>

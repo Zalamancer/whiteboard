@@ -6,6 +6,7 @@ import { useProjectStore } from "@/store/useProjectStore";
 import { TransformControls } from "./TransformControls";
 import { AnimationControls } from "./AnimationControls";
 import { StyleControls } from "./StyleControls";
+import { AIEditInput } from "../ai/AIEditInput";
 
 export const PropertiesPanel: React.FC = () => {
   const selectedIds = useEditorStore((s) => s.selectedElementIds);
@@ -122,6 +123,8 @@ export const PropertiesPanel: React.FC = () => {
       <AnimationControls element={selectedElement} />
       <div className="h-px bg-[var(--border)]" />
       <StyleControls element={selectedElement} />
+      <div className="h-px bg-[var(--border)]" />
+      <AIEditInput element={selectedElement} />
     </div>
   );
 };

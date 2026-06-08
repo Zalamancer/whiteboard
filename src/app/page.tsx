@@ -1,7 +1,5 @@
-"use client";
-
-import { EditorLayout } from "@/components/editor/EditorLayout";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return <EditorLayout />;
+  redirect("/editor");
 }

@@ -7,8 +7,8 @@ interface HistoryState {
   past: Project[];
   future: Project[];
   pushState: (project: Project) => void;
-  undo: () => Project | null;
-  redo: () => Project | null;
+  undo: (currentProject: Project) => Project | null;
+  redo: (currentProject: Project) => Project | null;
   canUndo: () => boolean;
   canRedo: () => boolean;
   clear: () => void;
@@ -25,24 +25,24 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     }));
   },
 
-  undo: () => {
+  undo: (currentProject) => {
     const { past } = get();
     if (past.length === 0) return null;
     const previous = past[past.length - 1];
     set((state) => ({
       past: state.past.slice(0, -1),
-      future: [...state.future],
+      future: [...state.future, structuredClone(currentProject)],
     }));
     return previous;
   },
 
-  redo: () => {
+  redo: (currentProject) => {
     const { future } = get();
     if (future.length === 0) return null;
     const next = future[future.length - 1];
     set((state) => ({
       future: state.future.slice(0, -1),
-      past: [...state.past],
+      past: [...state.past, structuredClone(currentProject)],
     }));
     return next;
   },

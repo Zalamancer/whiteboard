@@ -1,5 +1,15 @@
 export type ElementType = "svg-path" | "text" | "image" | "shape";
-export type AnimationType = "draw" | "fade-in" | "none";
+export type AnimationType =
+  | "draw"
+  | "fade-in"
+  | "none"
+  | "slide-in-left"
+  | "slide-in-right"
+  | "slide-in-bottom"
+  | "pop"
+  | "typewriter"
+  | "wipe-left"
+  | "stamp";
 export type EasingType =
   | "linear"
   | "ease-in"
@@ -7,6 +17,16 @@ export type EasingType =
   | "ease-in-out"
   | "spring";
 export type AudioTrackType = "background" | "voiceover" | "sfx";
+
+export type VideoStyle =
+  | "classic-whiteboard"
+  | "blackboard"
+  | "colorful-flat"
+  | "sketch-notebook"
+  | "neon-dark"
+  | "corporate-clean";
+
+export type AspectRatio = "16:9" | "9:16" | "1:1" | "4:3";
 
 export interface SVGPathData {
   type: "svg-path";
@@ -93,6 +113,8 @@ export interface Project {
   height: number;
   fps: number;
   backgroundColor: string;
+  videoStyle: VideoStyle;
+  aspectRatio: AspectRatio;
   elements: WhiteboardElement[];
   cameraKeyframes: CameraKeyframe[];
   audioTracks: AudioTrack[];

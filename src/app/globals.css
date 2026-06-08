@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #1a1a2e;
-  --foreground: #e0e0e0;
-  --surface: #16213e;
-  --surface-light: #1e2a47;
-  --border: #2a3a5c;
-  --primary: #6c63ff;
-  --primary-hover: #7c74ff;
-  --accent: #00d4aa;
-  --text-muted: #8892b0;
-  --danger: #ff6b6b;
+  --background: #18181b;
+  --foreground: #f4f4f5;
+  --surface: #27272a;
+  --surface-light: #3f3f46;
+  --border: rgba(63, 63, 70, 0.5);
+  --primary: #22c55e;
+  --primary-hover: #16a34a;
+  --accent: #22c55e;
+  --text-muted: #71717a;
+  --danger: #ef4444;
 }
 
 @theme inline {
@@ -53,10 +53,22 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--surface-light);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
+}
+
+/* Global focus-visible ring for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove default outline — focus-visible handles keyboard */
+:focus:not(:focus-visible) {
+  outline: none;
 }

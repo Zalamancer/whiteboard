@@ -63,7 +63,7 @@ export function useHotkeys() {
       // Cmd+Z: undo
       if (isMod && e.key === "z" && !e.shiftKey) {
         e.preventDefault();
-        const previous = undo();
+        const previous = undo(project);
         if (previous) setProject(previous);
         return;
       }
@@ -71,7 +71,7 @@ export function useHotkeys() {
       // Cmd+Shift+Z: redo
       if (isMod && e.key === "z" && e.shiftKey) {
         e.preventDefault();
-        const next = redo();
+        const next = redo(project);
         if (next) setProject(next);
         return;
       }
@@ -100,6 +100,7 @@ export function useHotkeys() {
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
         if (selectedIds.length > 0) {
           e.preventDefault();
+          pushState(project);
           const step = e.shiftKey ? 10 : 1;
           const dx =
             e.key === "ArrowLeft" ? -step : e.key === "ArrowRight" ? step : 0;
